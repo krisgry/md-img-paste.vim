@@ -155,6 +155,34 @@ function! s:InputName()
     return name
 endfunction
 
+function! g:MarkdownPasteImage(relpath)
+        execute "normal! i" . g:mdip_paste_prefix 
+        
+        let ipos = getcurpos()
+        execute "normal! a" . g:mdip_paste_before . relpath . g:mdip_paste_after
+        " " execute "normal! " 
+        call setpos('.', ipos)
+        execute "normal! ve\<C-g>"
+endfunction
+
+function! g:LatexPasteImage(relpath)
+      execute "normal! i\\includegraphics{" . a:relpath . "}\r\\caption{I"
+        
+        let ipos = getcurpos()
+        " execute "normal! a" . g:mdip_paste_before . relpath . g:mdip_paste_after . "yolo"
+        execute "normal! a" . "mage}"
+        " " execute "normal! " 
+        call setpos('.', ipos)
+        execute "normal! ve\<C-g>"
+endfunction
+
+
+function! g:EmptyPasteImage(relpath)
+      execute "normal! i" . a:relpath 
+endfunction
+
+let g:PasteImageFunction = 'g:EmptyPasteImage'
+
 function! mdip#MarkdownClipboardImage()
     " detect os: https://vi.stackexchange.com/questions/2572/detect-os-in-vimscript
     let s:os = "Windows"
@@ -176,11 +204,9 @@ function! mdip#MarkdownClipboardImage()
         " let relpath = s:SaveNewFile(g:mdip_imgdir, tmpfile)
         let extension = split(tmpfile, '\.')[-1]
         let relpath = g:mdip_imgdir_intext . '/' . g:mdip_tmpname . '.' . extension
-        execute "normal! i![I"
-        let ipos = getcurpos()
-        execute "normal! amage](" . relpath . ")"
-        call setpos('.', ipos)
-        execute "normal! ve\<C-g>"
+        " g:MarkdownPasteImage(relpath)
+        " call g:PasteImage(relpath)
+        call call(g:PasteImageFunction, [relpath])
     endif
 endfunction
 
@@ -200,4 +226,16 @@ if !exists('g:mdip_tmpname')
 endif
 if !exists('g:mdip_imgname')
     let g:mdip_imgname = 'image'
+endif
+if !exists('g:mdip_paste_prefix')
+    let g:mdip_paste_prefix = '![I'
+    " let g:mdip_paste_prefix = '\includegraphics[width=0.7\textwidth]{'
+endif
+if !exists('g:mdip_paste_before')
+    let g:mdip_paste_before = 'mager]('
+    " let g:mdip_paste_before = ''
+endif
+if !exists('g:mdip_paste_after')
+    let g:mdip_paste_after = ')'
+    " let g:mdip_paste_after = ''
 endif
